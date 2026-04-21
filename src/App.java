@@ -31,6 +31,19 @@ public class App {
         return null;
     }
     
+    private JSONObject loadLanguages() {
+        JSONParser parser = new JSONParser();
+        try {
+            Object obj = parser.parse(new FileReader("src/languages.json"));
+            if (obj instanceof JSONObject) {
+                return (JSONObject) obj;
+            }
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     public void run() {
         boolean salir = false;
         
@@ -79,19 +92,19 @@ public class App {
                     exercici7();
                     break;
                 case 8:
-                    
+                    exercici8();
                     break;
                 case 9:
-                    
+                    exercici9();
                     break;
                 case 10:
-                   
+                    exercici10();
                     break;
                 case 11:
-                  
+                    exercici11();
                     break;
                 case 12:
-                  
+                    exercici12();
                     break;
                 case 0:
                     System.out.println("Fins aviat!");
@@ -249,9 +262,115 @@ public class App {
         }
     }
     
+    public void exercici8() {
+        System.out.println("\n=== Exercici 8: Sèrie amb millor puntuació ===");
+        JSONArray series = loadSeries();
+        if (series != null) {
+            JSONObject best = null;
+            double maxVote = -1;
+            for (int i = 0; i < series.size(); i++) {
+                JSONObject serie = (JSONObject) series.get(i);
+                Number voteAvg = (Number) serie.get("vote_average");
+                if (voteAvg != null && voteAvg.doubleValue() > maxVote) {
+                    maxVote = voteAvg.doubleValue();
+                    best = serie;
+                }
+            }
+            if (best != null) {
+                System.out.println("Sèrie amb millor puntuació:");
+                System.out.println("  Nom: " + best.get("name"));
+                System.out.println("  Puntuació: " + best.get("vote_average"));
+            }
+        }
+    }
     
+    public void exercici9() {
+        System.out.println("\n=== Exercici 9: Sèrie amb pitjor puntuació ===");
+        JSONArray series = loadSeries();
+        if (series != null) {
+            JSONObject worst = null;
+            double minVote = Double.MAX_VALUE;
+            for (int i = 0; i < series.size(); i++) {
+                JSONObject serie = (JSONObject) series.get(i);
+                Number voteAvg = (Number) serie.get("vote_average");
+                if (voteAvg != null && voteAvg.doubleValue() < minVote) {
+                    minVote = voteAvg.doubleValue();
+                    worst = serie;
+                }
+            }
+            if (worst != null) {
+                System.out.println("Sèrie amb pitjor puntuació:");
+                System.out.println("  Nom: " + worst.get("name"));
+                System.out.println("  Puntuació: " + worst.get("vote_average"));
+            }
+        }
+    }
     
+    public void exercici10() {
+        System.out.println("\n=== Exercici 10: Dada interessant del dataset ===");
+        JSONArray series = loadSeries();
+        if (series != null) {
+            int totalEpisodes = 0;
+            int totalSeasons = 0;
+            for (int i = 0; i < series.size(); i++) {
+                JSONObject serie = (JSONObject) series.get(i);
+                Number episodes = (Number) serie.get("number_of_episodes");
+                Number seasons = (Number) serie.get("number_of_seasons");
+                if (episodes != null) totalEpisodes += episodes.intValue();
+                if (seasons != null) totalSeasons += seasons.intValue();
+            }
+            System.out.println("Total d'episodis en el dataset: " + totalEpisodes);
+            System.out.println("Total de temporades en el dataset: " + totalSeasons);
+        }
+    }
     
+    public void exercici11() {
+        System.out.println("\n=== Exercici 11: Canvia idiomes amb languages.json ===");
+        JSONArray series = loadSeries();
+        JSONObject languages = loadLanguages();
+        
+        if (series != null && languages != null) {
+            for (Object obj : series) {
+                JSONObject serie = (JSONObject) obj;
+                String langCode = (String) serie.get("original_language");
+                if (langCode != null && languages.containsKey(langCode)) {
+                    serie.put("original_language", languages.get(langCode));
+                }
+            }
+            System.out.println("✓ Els idiomes s'han canviat correctament!");
+            System.out.println("Es mostra una mostra del canvi:");
+            for (int i = 0; i < Math.min(3, series.size()); i++) {
+                JSONObject serie = (JSONObject) series.get(i);
+                System.out.println("  Sèrie " + (i + 1) + ": " + serie.get("name") + " - " + serie.get("original_language"));
+            }
+        }
+    }
+    
+    public void exercici12() {
+        System.out.println("\n=== Exercici 12: Escriu fitxer tvs_modificat.json ===");
+        JSONArray series = loadSeries();
+        JSONObject languages = loadLanguages();
+        
+        if (series != null) {
+            if (languages != null) {
+                for (Object obj : series) {
+                    JSONObject serie = (JSONObject) obj;
+                    String langCode = (String) serie.get("original_language");
+                    if (langCode != null && languages.containsKey(langCode)) {
+                        serie.put("original_language", languages.get(langCode));
+                    }
+                }
+            }
+            
+            try (FileWriter writer = new FileWriter("src/tvs_modificat.json")) {
+                writer.write(series.toJSONString());
+                System.out.println("Fitxer 'tvs_modificat.json' creat correctament!");
+            } catch (IOException e) {
+                System.out.println("Error al crear el fitxer: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
 }
 
 
